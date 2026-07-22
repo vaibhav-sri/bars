@@ -23,45 +23,61 @@ export default class LyricsBarExtension extends Extension {
         Main.panel.addToStatusArea(this.uuid, this._indicator, 1, 'left');
 
         // Prepare the command to run our python helper script
-        // We will bundle lyrics.py in our extension folder
         this._scriptPath = this.dir.get_child('lyrics.py').get_path();
-
-        // Start a timer to update
-        this._timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
-            this._updateLyrics();
-            return GLib.SOURCE_CONTINUE;
-        });
         
-        this._updateLyrics();
+        this._startDaemon();
     }
 
-    _updateLyrics() {
+    _startDaemon() {
         try {
-            let proc = new Gio.Subprocess({
-                argv: ['python3', this._scriptPath],
+            this._proc = new Gio.Subprocess({
+                argv: ['python3', '-u', this._scriptPath], // -u for unbuffered stdout
                 flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
             });
-            proc.init(null);
+            this._proc.init(null);
             
-            proc.communicate_utf8_async(null, null, (proc, res) => {
-                try {
-                    let [ok, stdout, stderr] = proc.communicate_utf8_finish(res);
-                    if (ok && stdout) {
-                        this._label.set_text(stdout.trim());
-                    }
-                } catch (e) {
-                    console.error(`${this.uuid}: Error reading stdout`, e);
-                }
+            let stdoutPipe = this._proc.get_stdout_pipe();
+            this._dataStream = new Gio.DataInputStream({
+                base_stream: stdoutPipe,
+                close_base_stream: true
             });
+            
+            this._readNextLine();
         } catch (e) {
             console.error(`${this.uuid}: Failed to spawn script`, e);
         }
     }
 
+    _readNextLine() {
+        if (!this._dataStream) return;
+        
+        this._dataStream.read_line_async(GLib.PRIORITY_DEFAULT, null, (stream, res) => {
+            try {
+                let [line, length] = stream.read_line_finish_utf8(res);
+                if (line !== null) {
+                    this._label.set_text(line.trim());
+                    // Read next line recursively
+                    this._readNextLine();
+                } else {
+                    // EOF reached, meaning process died.
+                    console.log(`${this.uuid}: Python daemon exited`);
+                    this._proc = null;
+                }
+            } catch (e) {
+                console.error(`${this.uuid}: Error reading stdout`, e);
+            }
+        });
+    }
+
     disable() {
-        if (this._timeout) {
-            GLib.Source.remove(this._timeout);
-            this._timeout = null;
+        if (this._proc) {
+            this._proc.force_exit();
+            this._proc = null;
+        }
+
+        if (this._dataStream) {
+            this._dataStream.close(null);
+            this._dataStream = null;
         }
 
         if (this._indicator) {
