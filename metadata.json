@@ -1,0 +1,16 @@
+{
+    "uuid": "lyrics-bar@vaibhav.example.com",
+    "name": "Lyrics Bar",
+    "description": "Displays synchronized lyrics of the currently playing song in the top bar.",
+    "shell-version": [
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50"
+    ],
+    "url": "https://github.com/vaibhav/lyrics-bar",
+    "version-name": "1.0",
+    "settings-schema": "org.gnome.shell.extensions.lyrics-bar"
+}
