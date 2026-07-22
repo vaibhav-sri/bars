@@ -5,7 +5,7 @@ import json
 import os
 import time
 
-CACHE_FILE = '/tmp/lyrics_cache.json'
+CACHE_FILE = '/tmp/bars_cache.json'
 
 
 def get_mpris_players():
@@ -43,7 +43,7 @@ def fetch_lyrics(artist, title):
             urllib.parse.quote(artist)}&track_name={
             urllib.parse.quote(title)}"
         req = urllib.request.Request(
-            url, headers={'User-Agent': 'LyricsBarGnomeExtension/1.0 (https://github.com/vaibhav/lyrics-bar)'})
+            url, headers={'User-Agent': 'BarsGnomeExtension/1.0 (https://github.com/vaibhav-sri/bars)'})
         with urllib.request.urlopen(req, timeout=2.0) as response:
             data = json.loads(response.read().decode())
             return data.get('syncedLyrics') or data.get('plainLyrics')
@@ -88,7 +88,7 @@ def get_cached_lyrics(artist, title):
     return lrc
 
 
-class LyricsDaemon:
+class BarsDaemon:
     def __init__(self):
         self.last_output = None
         self.last_artist = None
@@ -152,7 +152,7 @@ class LyricsDaemon:
 
 
 def main():
-    daemon = LyricsDaemon()
+    daemon = BarsDaemon()
     while True:
         current_line = daemon.tick()
         if current_line is not None and current_line != daemon.last_output:

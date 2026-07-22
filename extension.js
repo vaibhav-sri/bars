@@ -6,15 +6,15 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-export default class LyricsBarExtension extends Extension {
+export default class BarsExtension extends Extension {
     enable() {
-        this._indicator = new PanelMenu.Button(0.0, 'Lyrics Bar', false);
+        this._indicator = new PanelMenu.Button(0.0, 'Bars', false);
         
         // Add a label
         this._label = new St.Label({
             text: '🎵 Loading...',
             y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'lyrics-bar-label'
+            style_class: 'bars-label'
         });
         
         this._indicator.add_child(this._label);
@@ -23,7 +23,7 @@ export default class LyricsBarExtension extends Extension {
         Main.panel.addToStatusArea(this.uuid, this._indicator, 1, 'left');
 
         // Prepare the command to run our python helper script
-        this._scriptPath = this.dir.get_child('lyrics.py').get_path();
+        this._scriptPath = this.dir.get_child('bars.py').get_path();
         
         this._startDaemon();
     }
