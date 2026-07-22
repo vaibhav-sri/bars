@@ -43,7 +43,7 @@ def fetch_lyrics(artist, title):
             urllib.parse.quote(artist)}&track_name={
             urllib.parse.quote(title)}"
         req = urllib.request.Request(
-            url, headers={'User-Agent': 'Mozilla/5.0'})
+            url, headers={'User-Agent': 'LyricsBarGnomeExtension/1.0 (https://github.com/vaibhav/lyrics-bar)'})
         with urllib.request.urlopen(req, timeout=2.0) as response:
             data = json.loads(response.read().decode())
             return data.get('syncedLyrics') or data.get('plainLyrics')
