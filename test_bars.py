@@ -86,6 +86,20 @@ class TestBarsDaemon(unittest.TestCase):
         self.assertEqual(lrc, "[00:10.00] Fetched")
         mock_fetch.assert_called_once_with("Artist", "Title")
 
+    @patch('bars.get_mpris_players')
+    def test_daemon_exit_on_consecutive_errors(self, mock_get_players):
+        mock_get_players.side_effect = Exception("DBus broken")
+        daemon = bars.BarsDaemon()
+
+        # Simulate 50 consecutive errors
+        for _ in range(50):
+            self.assertIsNone(daemon.tick())
+
+        # The 51st error should trigger sys.exit(1)
+        with self.assertRaises(SystemExit) as cm:
+            daemon.tick()
+        self.assertEqual(cm.exception.code, 1)
+
 
 if __name__ == '__main__':
     unittest.main()
