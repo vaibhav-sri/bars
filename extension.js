@@ -13,14 +13,14 @@ export default class LyricsBarExtension extends Extension {
         // Add a label
         this._label = new St.Label({
             text: '🎵 Loading...',
-            y_align: Clutter.ActorAlign.CENTER
+            y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'lyrics-bar-label'
         });
         
         this._indicator.add_child(this._label);
         
-        // Add to the top bar (center, next to clock, or right, next to vitals)
-        // Vitals is usually in the right, let's put it there.
-        Main.panel.addToStatusArea(this.uuid, this._indicator, 1, 'right');
+        // Add to the top bar (left)
+        Main.panel.addToStatusArea(this.uuid, this._indicator, 1, 'left');
 
         // Prepare the command to run our python helper script
         // We will bundle lyrics.py in our extension folder
