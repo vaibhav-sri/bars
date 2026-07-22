@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import json
 import os
+import sys
 import time
 
 CACHE_FILE = '/tmp/bars_cache.json'
@@ -95,6 +96,7 @@ class BarsDaemon:
         self.last_title = None
         self.parsed_lyrics = None
         self.fallback_text = None
+        self.consecutive_errors = 0
 
     def tick(self):
         try:
@@ -145,9 +147,13 @@ class BarsDaemon:
                     if not found_line:
                         current_line = "🎵 ..."
 
+            self.consecutive_errors = 0
             return current_line
 
         except Exception:
+            self.consecutive_errors += 1
+            if self.consecutive_errors > 50:
+                sys.exit(1)
             return None
 
 

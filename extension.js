@@ -62,6 +62,15 @@ export default class BarsExtension extends Extension {
                     // EOF reached, meaning process died.
                     console.log(`${this.uuid}: Python daemon exited`);
                     this._proc = null;
+                    
+                    // Restart daemon automatically after 5 seconds to recover from suspend/crashes
+                    this._timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
+                        if (!this._proc) {
+                            this._startDaemon();
+                        }
+                        this._timeout = null;
+                        return GLib.SOURCE_REMOVE;
+                    });
                 }
             } catch (e) {
                 console.error(`${this.uuid}: Error reading stdout`, e);
@@ -70,6 +79,11 @@ export default class BarsExtension extends Extension {
     }
 
     disable() {
+        if (this._timeout) {
+            GLib.Source.remove(this._timeout);
+            this._timeout = null;
+        }
+
         if (this._proc) {
             this._proc.force_exit();
             this._proc = null;
