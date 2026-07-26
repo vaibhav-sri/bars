@@ -12,15 +12,37 @@ export default class BarsExtension extends Extension {
         
         // Add a label
         this._label = new St.Label({
-            text: '🎵 Loading...',
+            text: '• Loading...',
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'bars-label'
         });
         
         this._indicator.add_child(this._label);
         
-        // Add to the top bar (left)
-        Main.panel.addToStatusArea(this.uuid, this._indicator, 1, 'left');
+        // Add to the top bar (left) 
+        Main.panel.addToStatusArea(this.uuid, this._indicator, -1, 'left');
+
+        // GNOME loads extensions in an unpredictable order. 
+        // We connect to 'child-added' on the leftBox to guarantee Bars 
+        // stays permanently at the far right of the left panel!
+        this._actorAddedId = Main.panel._leftBox.connect('child-added', () => {
+            if (this._indicator) {
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    let leftBox = Main.panel._leftBox;
+                    let children = leftBox.get_children();
+                    let indicatorActor = this._indicator.container || this._indicator;
+                    if (children.length > 0 && children[children.length - 1] !== indicatorActor) {
+                        leftBox.set_child_at_index(indicatorActor, leftBox.get_n_children() - 1);
+                    }
+                    return GLib.SOURCE_REMOVE;
+                });
+            }
+        });
+
+        // Listen for screen lock/unlock to hide/show lyrics
+        this._sessionUpdatedId = Main.sessionMode.connect('updated', () => {
+            this._updateLabel();
+        });
 
         // Prepare the command to run our python helper script
         this._scriptPath = this.dir.get_child('bars.py').get_path();
@@ -48,6 +70,20 @@ export default class BarsExtension extends Extension {
         }
     }
 
+    _updateLabel() {
+        if (!this._lastData) return;
+        let data = this._lastData;
+        if (Main.sessionMode.currentMode === 'unlock-dialog') {
+            if (data.title) {
+                this._label.set_text(`• ${data.title}`);
+            } else {
+                this._label.set_text('');
+            }
+        } else {
+            this._label.set_text(data.text);
+        }
+    }
+
     _readNextLine() {
         if (!this._dataStream) return;
         
@@ -55,7 +91,13 @@ export default class BarsExtension extends Extension {
             try {
                 let [line, length] = stream.read_line_finish_utf8(res);
                 if (line !== null) {
-                    this._label.set_text(line.trim());
+                    try {
+                        let data = JSON.parse(line.trim());
+                        this._lastData = data;
+                        this._updateLabel();
+                    } catch (e) {
+                        this._label.set_text(line.trim());
+                    }
                     // Read next line recursively
                     this._readNextLine();
                 } else {
@@ -79,6 +121,16 @@ export default class BarsExtension extends Extension {
     }
 
     disable() {
+        if (this._actorAddedId) {
+            Main.panel._leftBox.disconnect(this._actorAddedId);
+            this._actorAddedId = null;
+        }
+
+        if (this._sessionUpdatedId) {
+            Main.sessionMode.disconnect(this._sessionUpdatedId);
+            this._sessionUpdatedId = null;
+        }
+
         if (this._timeout) {
             GLib.Source.remove(this._timeout);
             this._timeout = null;

@@ -1,0 +1,24 @@
+1. Pre-publish cleanup (do this before making it public):
+-Scan your commit history for secrets — API keys, tokens, .env files, passwords accidentally committed early on. Deleting the file later isn't enough; it's still in git history. Tools like gitleaks or trufflehog can scan the full history for you.
+- Add a proper .gitignore (GitHub has language/framework-specific templates you can pick when creating the repo).
+- Remove any hardcoded personal paths, machine-specific config, or debug leftovers.
+What a solid repo has:
+README.md — the single most important file. At minimum: what the tool does (one or two lines), install instructions, a usage example, and a screenshot/GIF if it's visual. This is what determines whether someone trusts and tries your tool in the first 10 seconds.
+LICENSE — as above.
+CONTRIBUTING.md — even a short one: how to file issues, how to submit a PR, coding style if any.
+CODE_OF_CONDUCT.md — GitHub can auto-generate a standard one (e.g. Contributor Covenant). Sets expectations for community behavior.
+SECURITY.md (optional but good practice) — how someone should responsibly report a vulnerability to you.
+CHANGELOG.md (optional) — track what changes between versions.
+
+GitHub actually scores you on most of this automatically: go to your repo → Insights → Community Standards — it shows exactly which of these files you're missing.
+
+2. Publishing properly
+- Push your cleaned-up code to a new public repo.
+- Write a clear repo description (top of the repo page) and add relevant topics/tags (e.g. cli-tool, linux, python) — this is how people discover it via GitHub search.
+- Cut a first release using tags + semantic versioning (e.g. v0.1.0) via the "Releases" section — gives people a stable point to download/reference instead of just the latest commit.
+- Consider a GitHub Actions badge if you have any tests/CI — signals the project is maintained.
+- Turn on branch protection on main if you plan to take contributions, so PRs go through review rather than being pushed directly.
+3. Special case: GNOME Shell extensions
+The general "MIT by default" advice above doesn't apply if your tool is a GNOME Shell extension specifically. GNOME Shell itself is licensed GPL-2.0-or-later, and GNOME's own extension review guidelines require extensions — as derived works — to be distributed under GPL-compatible terms. This is enforced at submission time if you publish to extensions.gnome.org (the official marketplace), which asks you to confirm GPLv2+ compatibility.
+
+Practical takeaway: pick GPL-2.0-or-later (via GitHub's license template picker) rather than MIT for a GNOME Shell extension, even if some of your dependencies (stdlib, MIT-licensed packages) are permissive on their own. The GPL requirement only kicks in because of the GNOME Shell JS API surface (Gio, GLib, St, Clutter, Main, PanelMenu, etc.) — calling an external HTTP API (like a lyrics provider) or using permissive Python dependencies doesn't change this.

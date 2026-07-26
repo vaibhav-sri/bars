@@ -16,28 +16,44 @@
 
 ---
 
-## Installation
+## Installation Guide
 
-### 1. Manual Install (Linux / Fedora 44+)
+We've made installing **Bars** as simple as possible for Linux users. You can either use the provided installation script or use `make` to package it yourself.
 
-Clone or link the repository into your local GNOME Shell extensions directory:
-
+### Option A: One-Click Install Script (Recommended)
+If you have cloned or downloaded this repository, simply run the installation script:
 ```bash
-# Clone the repository
-git clone https://github.com/vaibhav-sri/bars.git ~/.local/share/gnome-shell/extensions/bars@vaibhav-sri.github.com
+./install.sh
+```
+This script will automatically package the extension into a `.zip` file and install it to your local GNOME Shell extensions directory.
 
-# Or, if you already have it downloaded:
-ln -s /path/to/bars ~/.local/share/gnome-shell/extensions/bars@vaibhav-sri.github.com
+### Option B: Using Make
+If you prefer standard build tools, a `Makefile` is provided:
+```bash
+# Packages and installs the extension
+make install
 ```
 
-### 2. Enable the Extension
+### Option C: Manual Packaging
+If you want to package it manually for distribution:
+```bash
+zip -q bars@vaibhav-sri.github.com.zip bars.py extension.js metadata.json stylesheet.css README.md
+gnome-extensions install bars@vaibhav-sri.github.com.zip --force
+```
 
-Because GNOME Shell needs to read new extensions on startup, you must log out of your session and log back in. (If you are on X11, simply press `Alt+F2`, type `r`, and hit `Enter`).
-
-Enable the extension using your terminal:
+### Enabling the Extension
+Because GNOME Shell (on Wayland) requires a session reload to detect new extensions:
+1. **Log out of your user session and log back in.** (If you are on X11, simply press `Alt+F2`, type `r`, and hit `Enter`).
+2. Enable the extension using your terminal:
 ```bash
 gnome-extensions enable bars@vaibhav-sri.github.com
 ```
+
+---
+
+## Architecture & Documentation
+
+To understand the core design, sequence diagrams, and how the Python daemon communicates with GNOME Shell, please read our [Architecture Documentation](docs/architecture.md).
 
 ---
 

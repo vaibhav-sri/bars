@@ -12,5 +12,6 @@
     ],
     "url": "https://github.com/vaibhav-sri/bars",
     "version-name": "1.0",
-    "settings-schema": "org.gnome.shell.extensions.bars"
+    "settings-schema": "org.gnome.shell.extensions.bars",
+    "session-modes": ["user", "unlock-dialog"]
 }

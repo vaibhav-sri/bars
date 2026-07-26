@@ -45,9 +45,20 @@ def fetch_lyrics(artist, title):
             urllib.parse.quote(title)}"
         req = urllib.request.Request(
             url, headers={'User-Agent': 'BarsGnomeExtension/1.0 (https://github.com/vaibhav-sri/bars)'})
-        with urllib.request.urlopen(req, timeout=2.0) as response:
-            data = json.loads(response.read().decode())
-            return data.get('syncedLyrics') or data.get('plainLyrics')
+        try:
+            with urllib.request.urlopen(req, timeout=10.0) as response:
+                data = json.loads(response.read().decode())
+                return data.get('syncedLyrics') or data.get('plainLyrics')
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                search_url = f"https://lrclib.net/api/search?q={urllib.parse.quote(artist + ' ' + title)}"
+                req = urllib.request.Request(
+                    search_url, headers={'User-Agent': 'BarsGnomeExtension/1.0 (https://github.com/vaibhav-sri/bars)'})
+                with urllib.request.urlopen(req, timeout=10.0) as response:
+                    data = json.loads(response.read().decode())
+                    if data and len(data) > 0:
+                        return data[0].get('syncedLyrics') or data[0].get('plainLyrics')
+            return None
     except Exception:
         return None
 
@@ -80,11 +91,12 @@ def get_cached_lyrics(artist, title):
             pass
 
     lrc = fetch_lyrics(artist, title)
-    try:
-        with open(CACHE_FILE, 'w') as f:
-            json.dump({'artist': artist, 'title': title, 'lyrics': lrc}, f)
-    except Exception:
-        pass
+    if lrc:
+        try:
+            with open(CACHE_FILE, 'w') as f:
+                json.dump({'artist': artist, 'title': title, 'lyrics': lrc}, f)
+        except Exception:
+            pass
 
     return lrc
 
@@ -111,25 +123,29 @@ class BarsDaemon:
                 firefox_player = players[0]
 
             if not firefox_player:
-                return "🎵 No player"
+                return json.dumps({"title": "", "artist": "", "text": "• No player", "status": "Stopped"})
 
             metadata, position, status = get_metadata(firefox_player)
             if metadata is None:
-                return "🎵 No metadata"
+                return json.dumps({"title": "", "artist": "", "text": "• No metadata", "status": "Stopped"})
 
-            artist_list = metadata.get('xesam:artist', [])
-            artist = str(artist_list[0]) if artist_list else ''
+            artist_field = metadata.get('xesam:artist', '')
+            if isinstance(artist_field, (list, tuple)) or type(artist_field).__name__ == 'Array':
+                artist = str(artist_field[0]) if len(artist_field) > 0 else ''
+            else:
+                artist = str(artist_field)
+                
             title = str(metadata.get('xesam:title', ''))
 
             if not artist or not title:
-                return "🎵 Nothing playing"
+                return json.dumps({"title": title, "artist": artist, "text": "• Nothing playing", "status": "Stopped"})
 
             if artist != self.last_artist or title != self.last_title:
                 lrc = get_cached_lyrics(artist, title)
                 self.parsed_lyrics = parse_synced_lyrics(lrc) if lrc else None
                 self.last_artist = artist
                 self.last_title = title
-                self.fallback_text = f"🎵 {title}"
+                self.fallback_text = f"• {title}"
 
             current_line = self.fallback_text
 
@@ -145,10 +161,10 @@ class BarsDaemon:
                             found_line = True
                             break
                     if not found_line:
-                        current_line = "🎵 ..."
+                        current_line = "• ..."
 
             self.consecutive_errors = 0
-            return current_line
+            return json.dumps({"title": title, "artist": artist, "text": current_line, "status": status})
 
         except Exception:
             self.consecutive_errors += 1
@@ -163,6 +179,11 @@ def main():
         current_line = daemon.tick()
         if current_line is not None and current_line != daemon.last_output:
             print(current_line, flush=True)
+            try:
+                with open('/tmp/bars_debug.log', 'a') as debug_f:
+                    debug_f.write(current_line + '\n')
+            except:
+                pass
             daemon.last_output = current_line
         time.sleep(0.1)
 
