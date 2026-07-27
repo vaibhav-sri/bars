@@ -123,11 +123,11 @@ class BarsDaemon:
                 firefox_player = players[0]
 
             if not firefox_player:
-                return json.dumps({"title": "", "artist": "", "text": "• No player", "status": "Stopped"})
+                return json.dumps({"title": "", "artist": "", "text": "No player", "status": "Stopped"})
 
             metadata, position, status = get_metadata(firefox_player)
             if metadata is None:
-                return json.dumps({"title": "", "artist": "", "text": "• No metadata", "status": "Stopped"})
+                return json.dumps({"title": "", "artist": "", "text": "No metadata", "status": "Stopped"})
 
             artist_field = metadata.get('xesam:artist', '')
             if isinstance(artist_field, (list, tuple)) or type(artist_field).__name__ == 'Array':
@@ -138,14 +138,14 @@ class BarsDaemon:
             title = str(metadata.get('xesam:title', ''))
 
             if not artist or not title:
-                return json.dumps({"title": title, "artist": artist, "text": "• Nothing playing", "status": "Stopped"})
+                return json.dumps({"title": title, "artist": artist, "text": "Nothing playing", "status": "Stopped"})
 
             if artist != self.last_artist or title != self.last_title:
                 lrc = get_cached_lyrics(artist, title)
                 self.parsed_lyrics = parse_synced_lyrics(lrc) if lrc else None
                 self.last_artist = artist
                 self.last_title = title
-                self.fallback_text = f"• {title}"
+                self.fallback_text = f"{title}"
 
             current_line = self.fallback_text
 
@@ -158,10 +158,10 @@ class BarsDaemon:
                         if pos_sec >= time_sec:
                             if text:
                                 current_line = text
+                            else:
+                                current_line = "..."
                             found_line = True
                             break
-                    if not found_line:
-                        current_line = "• ..."
 
             self.consecutive_errors = 0
             return json.dumps({"title": title, "artist": artist, "text": current_line, "status": status})

@@ -17,7 +17,7 @@ class TestBarsDaemon(unittest.TestCase):
     def test_daemon_no_players(self, mock_get_players):
         mock_get_players.return_value = []
         daemon = bars.BarsDaemon()
-        self.assertEqual(json.loads(daemon.tick())['text'], "• No player")
+        self.assertEqual(json.loads(daemon.tick())['text'], "No player")
 
     @patch('bars.get_mpris_players')
     @patch('bars.get_metadata')
@@ -25,7 +25,7 @@ class TestBarsDaemon(unittest.TestCase):
         mock_get_players.return_value = ["org.mpris.MediaPlayer2.firefox"]
         mock_get_metadata.return_value = ({}, 0, "Stopped")
         daemon = bars.BarsDaemon()
-        self.assertEqual(json.loads(daemon.tick())['text'], "• Nothing playing")
+        self.assertEqual(json.loads(daemon.tick())['text'], "Nothing playing")
 
     @patch('bars.get_mpris_players')
     @patch('bars.get_metadata')
@@ -71,7 +71,7 @@ class TestBarsDaemon(unittest.TestCase):
         mock_get_metadata.return_value = (
             {'xesam:artist': [], 'xesam:title': ''}, 0, "Playing")
         daemon = bars.BarsDaemon()
-        self.assertEqual(json.loads(daemon.tick())['text'], "• Nothing playing")
+        self.assertEqual(json.loads(daemon.tick())['text'], "Nothing playing")
 
     @patch('os.path.exists')
     @patch('builtins.open',
@@ -149,6 +149,44 @@ class TestBarsDaemon(unittest.TestCase):
         
         self.assertEqual(daemon.last_artist, 'Jim Croce')
         self.assertEqual(daemon.last_title, 'Time in a Bottle')
+
+    @patch('bars.get_mpris_players')
+    @patch('bars.get_metadata')
+    @patch('bars.get_cached_lyrics')
+    def test_daemon_instrumental_gap(
+            self,
+            mock_get_cached,
+            mock_get_metadata,
+            mock_get_players):
+        # This test ensures that the daemon shows the song title before lyrics start,
+        # and "..." during long instrumental gaps.
+        mock_get_players.return_value = ["org.mpris.MediaPlayer2.firefox"]
+        mock_get_cached.return_value = "[00:10.00] First lyric\n[00:20.00] \n[00:30.00] Second lyric"
+        
+        # Position 0: Before first lyric (should show song title)
+        mock_get_metadata.return_value = (
+            {'xesam:artist': ['Artist'], 'xesam:title': 'Song'},
+            0,
+            "Playing"
+        )
+        daemon = bars.BarsDaemon()
+        self.assertEqual(json.loads(daemon.tick())['text'], "Song")
+
+        # Position 11 seconds: During first lyric
+        mock_get_metadata.return_value = (
+            {'xesam:artist': ['Artist'], 'xesam:title': 'Song'},
+            11000000,
+            "Playing"
+        )
+        self.assertEqual(json.loads(daemon.tick())['text'], "First lyric")
+
+        # Position 22 seconds: During instrumental gap
+        mock_get_metadata.return_value = (
+            {'xesam:artist': ['Artist'], 'xesam:title': 'Song'},
+            22000000,
+            "Playing"
+        )
+        self.assertEqual(json.loads(daemon.tick())['text'], "...")
 
 
 if __name__ == '__main__':

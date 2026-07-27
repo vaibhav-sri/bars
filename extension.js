@@ -12,7 +12,7 @@ export default class BarsExtension extends Extension {
         
         // Add a label
         this._label = new St.Label({
-            text: '• Loading...',
+            text: 'Loading...',
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'bars-label'
         });
@@ -75,7 +75,7 @@ export default class BarsExtension extends Extension {
         let data = this._lastData;
         if (Main.sessionMode.currentMode === 'unlock-dialog') {
             if (data.title) {
-                this._label.set_text(`• ${data.title}`);
+                this._label.set_text(`${data.title}`);
             } else {
                 this._label.set_text('');
             }
