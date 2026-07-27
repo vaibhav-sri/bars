@@ -1,6 +1,7 @@
 <div align="center">
   <h1>Bars</h1>
   <p><b>A beautifully native GNOME Shell Extension that displays synchronized lyrics in your top bar.</b></p>
+  <img src="assets/screenshot-bars-1.png" alt="Bars GNOME Extension Screenshot" style="max-width: 100%; border-radius: 8px; margin-top: 15px;" />
 </div>
 
 <br>
