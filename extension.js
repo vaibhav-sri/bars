@@ -27,13 +27,14 @@ export default class BarsExtension extends Extension {
         // stays permanently at the far right of the left panel!
         this._actorAddedId = Main.panel._leftBox.connect('child-added', () => {
             if (this._indicator) {
-                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._idleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
                     let leftBox = Main.panel._leftBox;
                     let children = leftBox.get_children();
                     let indicatorActor = this._indicator.container || this._indicator;
                     if (children.length > 0 && children[children.length - 1] !== indicatorActor) {
                         leftBox.set_child_at_index(indicatorActor, leftBox.get_n_children() - 1);
                     }
+                    this._idleId = null;
                     return GLib.SOURCE_REMOVE;
                 });
             }
@@ -123,9 +124,17 @@ export default class BarsExtension extends Extension {
     }
 
     disable() {
+        // Note: We use the 'unlock-dialog' session mode to allow lyrics to continue
+        // displaying while the screen is locked, avoiding abrupt UI changes.
+        
         if (this._actorAddedId) {
             Main.panel._leftBox.disconnect(this._actorAddedId);
             this._actorAddedId = null;
+        }
+
+        if (this._idleId) {
+            GLib.Source.remove(this._idleId);
+            this._idleId = null;
         }
 
         if (this._sessionUpdatedId) {
@@ -147,11 +156,15 @@ export default class BarsExtension extends Extension {
             this._dataStream.close(null);
             this._dataStream = null;
         }
+        
+        if (this._label) {
+            this._label.destroy();
+            this._label = null;
+        }
 
         if (this._indicator) {
             this._indicator.destroy();
             this._indicator = null;
         }
-        this._label = null;
     }
 }
