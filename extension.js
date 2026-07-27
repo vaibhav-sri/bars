@@ -74,7 +74,9 @@ export default class BarsExtension extends Extension {
         if (!this._lastData) return;
         let data = this._lastData;
         if (Main.sessionMode.currentMode === 'unlock-dialog') {
-            if (data.title) {
+            if (data.title && data.artist) {
+                this._label.set_text(`${data.title} - ${data.artist}`);
+            } else if (data.title) {
                 this._label.set_text(`${data.title}`);
             } else {
                 this._label.set_text('');

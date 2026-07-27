@@ -41,7 +41,7 @@ sequenceDiagram
     Ext->>Ext: _readNextLine() parses JSON
     
     alt Screen is Locked
-        Ext->>OS: Update UI label to "Song Title"
+        Ext->>OS: Update UI label to "Song Title - Artist"
     else Screen is Unlocked
         Ext->>OS: Update UI label to active lyric line
     end

@@ -145,7 +145,10 @@ class BarsDaemon:
                 self.parsed_lyrics = parse_synced_lyrics(lrc) if lrc else None
                 self.last_artist = artist
                 self.last_title = title
-                self.fallback_text = f"{title}"
+                if title and artist:
+                    self.fallback_text = f"{title} - {artist}"
+                else:
+                    self.fallback_text = f"{title}"
 
             current_line = self.fallback_text
 

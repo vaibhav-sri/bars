@@ -170,7 +170,7 @@ class TestBarsDaemon(unittest.TestCase):
             "Playing"
         )
         daemon = bars.BarsDaemon()
-        self.assertEqual(json.loads(daemon.tick())['text'], "Song")
+        self.assertEqual(json.loads(daemon.tick())['text'], "Song - Artist")
 
         # Position 11 seconds: During first lyric
         mock_get_metadata.return_value = (
