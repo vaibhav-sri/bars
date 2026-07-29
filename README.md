@@ -8,6 +8,16 @@
 
 **Bars** is a lightweight, zero-latency GNOME extension that instantly syncs the lyrics of the currently playing song and renders them right in your top panel. It's built for efficiency, leveraging an event-driven daemon that guarantees instantaneous updates without bloating your system.
 
+## System Requirements & Compatibility
+
+> [!WARNING]
+> **Bars is exclusively built for GNOME 45 and newer.**
+> It utilizes the modern GNOME ESM (ECMAScript Module) extension architecture, which completely replaced the legacy extension system.
+> 
+> If you are on an older LTS release like **Ubuntu 22.04** (which uses GNOME 42), the extension will silently fail to load because your system does not support modern GNOME extensions. Ensure you are on a recent OS like Ubuntu 24.04, Fedora 39+, or Arch Linux.
+
+---
+
 ## Features
 
 - **Zero Latency Engine**: Powered by a custom Python daemon using asynchronous I/O streams. The lyrics update the millisecond the song advances.
