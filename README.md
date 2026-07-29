@@ -42,15 +42,12 @@ zip -q bars@vaibhav-sri.github.com.zip bars.py extension.js metadata.json styles
 gnome-extensions install bars@vaibhav-sri.github.com.zip --force
 ```
 
-### Enabling the Extension
-Because GNOME Shell (on Wayland) requires a session reload to detect new extensions:
+### Reloading the Extension
+GNOME Shell requires a session reload to load newly installed extensions safely:
 1. **Log out of your user session and log back in.** (If you are on X11, simply press `Alt+F2`, type `r`, and hit `Enter`).
-2. Enable the extension using your terminal:
-```bash
-gnome-extensions enable bars@vaibhav-sri.github.com
-```
+2. The extension is automatically enabled by the install script. You should see it in your top panel immediately after logging back in!
 
----
+*(Note: If you packaged and installed it manually using `zip`, you will need to run `gnome-extensions enable bars@vaibhav-sri.github.com` before reloading.)*
 
 ## Architecture & Documentation
 

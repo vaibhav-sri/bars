@@ -23,12 +23,22 @@ $(ZIP_NAME): $(FILES)
 	@echo "gnome-extensions install $(ZIP_NAME)"
 
 install: pack
+	@echo "Checking dependencies..."
+	@if ! python3 -c "import dbus" > /dev/null 2>&1; then \
+		echo "================================================================="; \
+		echo "WARNING: Missing dependency 'python3-dbus'!"; \
+		echo "The extension requires it to communicate with media players."; \
+		echo "Please run: sudo apt install python3-dbus (Ubuntu/Debian)"; \
+		echo "         or sudo dnf install python3-dbus (Fedora)"; \
+		echo "================================================================="; \
+	fi
 	@echo "Removing any existing installation or symlinks to prevent conflicts..."
 	@rm -rf $(INSTALL_DIR)
 	@echo "Installing extension locally..."
 	@gnome-extensions install $(ZIP_NAME)
-	@echo "Extension installed! Please log out and log back in (Wayland) or press Alt+F2, type 'r', and press Enter (X11)."
-	@echo "Then enable it with: gnome-extensions enable $(EXTENSION_UUID)"
+	@echo "Enabling extension automatically..."
+	@gnome-extensions enable $(EXTENSION_UUID)
+	@echo "Extension installed and enabled! Please log out and log back in to reload GNOME Shell."
 
 clean:
 	@rm -f $(ZIP_NAME)
