@@ -8,6 +8,16 @@
 
 **Bars** is a lightweight, zero-latency GNOME extension that instantly syncs the lyrics of the currently playing song and renders them right in your top panel. It's built for efficiency, leveraging an event-driven daemon that guarantees instantaneous updates without bloating your system.
 
+## System Requirements & Compatibility
+
+> [!WARNING]
+> **Bars is exclusively built for GNOME 45 and newer.**
+> It utilizes the modern GNOME ESM (ECMAScript Module) extension architecture, which completely replaced the legacy extension system.
+> 
+> If you are on an older LTS release like **Ubuntu 22.04** (which uses GNOME 42), the extension will silently fail to load because your system does not support modern GNOME extensions. Ensure you are on a recent OS like Ubuntu 24.04, Fedora 39+, or Arch Linux.
+
+---
+
 ## Features
 
 - **Zero Latency Engine**: Powered by a custom Python daemon using asynchronous I/O streams. The lyrics update the millisecond the song advances.
@@ -42,15 +52,12 @@ zip -q bars@vaibhav-sri.github.com.zip bars.py extension.js metadata.json styles
 gnome-extensions install bars@vaibhav-sri.github.com.zip --force
 ```
 
-### Enabling the Extension
-Because GNOME Shell (on Wayland) requires a session reload to detect new extensions:
+### Reloading the Extension
+GNOME Shell requires a session reload to load newly installed extensions safely:
 1. **Log out of your user session and log back in.** (If you are on X11, simply press `Alt+F2`, type `r`, and hit `Enter`).
-2. Enable the extension using your terminal:
-```bash
-gnome-extensions enable bars@vaibhav-sri.github.com
-```
+2. The extension is automatically enabled by the install script. You should see it in your top panel immediately after logging back in!
 
----
+*(Note: If you packaged and installed it manually using `zip`, you will need to run `gnome-extensions enable bars@vaibhav-sri.github.com` before reloading.)*
 
 ## Architecture & Documentation
 
