@@ -136,9 +136,14 @@ class BarsDaemon:
                 artist = str(artist_field)
                 
             title = str(metadata.get('xesam:title', ''))
+            url = str(metadata.get('xesam:url', ''))
 
             if not artist or not title:
                 return json.dumps({"title": title, "artist": artist, "text": "Nothing playing", "status": "Stopped"})
+
+            # Explicitly filter out regular YouTube videos, but allow YouTube Music
+            if ('youtube.com/watch' in url or 'youtu.be/' in url) and 'music.youtube.com' not in url:
+                return json.dumps({"title": "", "artist": "", "text": "No player", "status": "Stopped"})
 
             if artist != self.last_artist or title != self.last_title:
                 lrc = get_cached_lyrics(artist, title)

@@ -188,6 +188,53 @@ class TestBarsDaemon(unittest.TestCase):
         )
         self.assertEqual(json.loads(daemon.tick())['text'], "...")
 
+    @patch('bars.get_mpris_players')
+    @patch('bars.get_metadata')
+    def test_youtube_video_filter(self, mock_get_metadata, mock_get_players):
+        # This test ensures that YouTube videos played in the browser are explicitly ignored,
+        # preventing random video titles from appearing in the top bar.
+        mock_get_players.return_value = ["org.mpris.MediaPlayer2.firefox"]
+        mock_get_metadata.return_value = (
+            {
+                'xesam:artist': ['arthurpizza'],
+                'xesam:title': 'Simple Dictation Software for Linux',
+                'xesam:url': 'https://www.youtube.com/watch?v=Cw1SEsc8sdA'
+            },
+            0,
+            "Playing"
+        )
+        
+        daemon = bars.BarsDaemon()
+        output = json.loads(daemon.tick())
+        
+        # It should completely ignore the player
+        self.assertEqual(output['text'], "No player")
+        self.assertEqual(output['title'], "")
+        self.assertEqual(output['artist'], "")
+
+    @patch('bars.get_mpris_players')
+    @patch('bars.get_metadata')
+    def test_youtube_music_allowed(self, mock_get_metadata, mock_get_players):
+        # This test ensures that YouTube Music is NOT accidentally filtered out
+        # by the regular YouTube video filter.
+        mock_get_players.return_value = ["org.mpris.MediaPlayer2.firefox"]
+        mock_get_metadata.return_value = (
+            {
+                'xesam:artist': ['Pink Floyd'],
+                'xesam:title': 'Time',
+                'xesam:url': 'https://music.youtube.com/watch?v=123456789'
+            },
+            0,
+            "Playing"
+        )
+        
+        daemon = bars.BarsDaemon()
+        output = json.loads(daemon.tick())
+        
+        # It should allow the player
+        self.assertEqual(output['title'], "Time")
+        self.assertEqual(output['artist'], "Pink Floyd")
+
 
 if __name__ == '__main__':
     unittest.main()
